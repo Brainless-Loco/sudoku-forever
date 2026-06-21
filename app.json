@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Sudoku-forever-new-version",
-    "slug": "Sudoku-forever-new-version",
+    "name": "Sudoku Forever",
+    "slug": "Sudoku-forever-by-brainless-loco",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "sudokuforevernewversion",
+    "scheme": "sudokuforeverbybrainlessloco",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -38,11 +38,18 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f54370ca-de1e-4975-b555-5c59acc465c4"
+      }
     }
   }
 }

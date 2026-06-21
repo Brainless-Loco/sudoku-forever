@@ -1,0 +1,133 @@
+import moment from 'moment';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
+import { useSelector } from 'react-redux';
+import { db } from '../../firebase/firebaseConfig';
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { RootState } from '../../redux/store';
+
+export default function WriteBlogScreen({ navigation }: any) {
+  const editorRef = useRef<any>(null);
+
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  const handleHead = ({ tintColor }: any) => <Text style={{ color: tintColor }}>H1</Text>;
+
+  const { userRef, userProfilePic, userEmail, userName } = useSelector((state: RootState) => state.currentPlayer_info as any);
+
+  const postABlog = async () => {
+    if (title.trim().length > 0 && content.trim().length > 0) {
+      setTitle(title.trim());
+      setContent(content.trim());
+      const date = moment();
+      const formattedDate = date.format('hh:mm:ss DD MMMM, YYYY');
+
+      const blogData = {
+        comments: [],
+        likes: [],
+        dislikes: [],
+        username: userName,
+        profilePicUrl: userProfilePic,
+        title: title,
+        date: formattedDate,
+        description: content,
+      };
+      try {
+        const blogsRef = collection(db, 'blogs');
+        const { id } = await addDoc(blogsRef, blogData as any) as any;
+        await updateDoc(doc(db, 'blogs', id), {
+          blogRef: id,
+        });
+        alert('Your Blog has been published!');
+        setTitle('');
+        setContent('');
+        navigation.navigate('AllBlogs');
+      } catch (error) {
+        alert('Something Went Wrong! :(');
+        console.error('Error adding blog:', error);
+      }
+    } else if (title.trim().length < 1) {
+      alert('Please write a title first');
+    } else {
+      alert('Please write something minimum for your blog content');
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <Text style={styles.title}>Write a Blog</Text>
+      <TextInput value={title} onChangeText={(text) => setTitle(text)} style={styles.input} placeholder="Title of the blog.." />
+      <View style={styles.editorContainer}>
+        <RichToolbar
+          editor={editorRef}
+          actions={[ actions.setBold, actions.setItalic, actions.setUnderline, actions.setStrikethrough, actions.heading1, actions.insertLink, actions.insertBulletsList, actions.insertOrderedList, actions.code, actions.blockquote, actions.alignLeft, actions.alignCenter, actions.alignRight, actions.setSuperscript, actions.setSubscript, actions.removeFormat, actions.undo, actions.redo ]}
+          iconMap={{ [actions.heading1]: handleHead }}
+          selectedIconTint="#000"
+          disabledIconTint="#bfbfbf"
+        />
+        <RichEditor
+          useContainer={false}
+          value={content}
+          ref={editorRef}
+          style={[styles.editor]}
+          placeholder="Write your blog here..."
+          onChange={ descriptionText => {
+              setContent(descriptionText);
+          }}
+        />
+      </View>
+
+      <TouchableOpacity onPress={postABlog} style={styles.postButton}>
+        <Text style={styles.postButtonText}>Post</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 8,
+    paddingBottom: 50,
+    backgroundColor: '#fff'
+  },
+  title: {
+    color: '#e80505',
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginBottom: 15
+  },
+  input: {
+    height: 40,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e80505'
+  },
+  editorContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e80505'
+  },
+  editor: {
+    minHeight: 350,
+  },
+  postButton: {
+    backgroundColor: '#e80505',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginVertical: 30,
+  },
+  postButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
